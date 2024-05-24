@@ -1,0 +1,22 @@
+.chart {
+  margin-bottom: 20px;
+}
+.bar {
+  fill: steelblue;
+}
+.bar-info { fill: green; }
+.bar-warn { fill: yellow; }
+.bar-error { fill: red; }
+.axis-label {
+  font-size: 12px;
+}
+.tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 6px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 4px;
+  pointer-events: none;
+}
