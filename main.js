@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 async function fetchData() {
-  const response = await fetch('/api/data');
+  const response = await fetch('http://impulse.yadro.msk.ru:8008/data');
   const data = await response.json();
   return data;
 }
