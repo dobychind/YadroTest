@@ -1,22 +1,157 @@
+body {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  background-color: black;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+p {
+  margin: 0;
+}
+
+h3 {
+  font-size: 32px;
+  margin: 0;
+}
+
+#charts-container {
+  display: flex;
+  background-color: #f0f2f8;
+
+  flex-direction: column;
+  width: 100%;
+  gap: 24px;
+  align-items: center;
+}
+
+.header {
+  background-color: black;
+  padding: 4px 12px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  background-color: black;
+  padding: 32px 144px 32px 32px;
+  margin: 0;
+}
+
+.link__container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.link__wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.link {
+  color: white;
+  text-decoration: none;
+  padding-bottom: 4px;
+}
+
+.link:hover {
+  text-decoration: underline;
+  color: #d9d9db;
+}
+
+.text-white {
+  color: white;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.footer__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.content__container {
+  background-color: #f0f2f8;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  align-items: center;
+  padding: 16px 8px;
+  width: -webkit-fill-available;
+}
+
+.text-content {
+  color: #1e22aa;
+  font-size: 32px;
+  font-weight: 700;
+}
 .chart {
-  margin-bottom: 20px;
+  background-color: white;
+  padding: 16px 32px;
 }
 .bar {
-  fill: steelblue;
+  stroke: black;
+  width: 13px;
 }
-.bar-info { fill: green; }
-.bar-warn { fill: yellow; }
-.bar-error { fill: red; }
-.axis-label {
-  font-size: 12px;
+.bar-error {
+  fill: #e44f41;
+}
+.bar-warn {
+  fill: yellow;
+}
+.bar-info {
+  fill: green;
 }
 .tooltip {
   position: absolute;
   text-align: center;
-  padding: 6px;
+  width: 120px;
+  height: auto;
+  padding: 8px;
   font: 12px sans-serif;
   background: lightsteelblue;
   border: 0px;
-  border-radius: 4px;
+  border-radius: 8px;
   pointer-events: none;
+}
+.x-axis text {
+  font-size: 10px;
+  text-anchor: end;
+  text-align: center;
+
+}
+.bar-label {
+  font-size: 10px;
+  text-anchor: middle;
+  fill: black;
+}
+
+.x-axis-label {
+  color: #1e22aa!important;
+  font-size: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 600;
+}
+
+.y-axis-label {
+  color: #1e22aa!important;
+  font-size: 20px;
+  font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@media  (max-width: 1024px) {
+  .content__container {
+    overflow-x: scroll;
+  }
+  #charts-container {
+    align-items: start;
+  }
 }

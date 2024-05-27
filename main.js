@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-
 async function fetchData() {
   const response = await fetch('/api/data');
   const data = await response.json();
@@ -11,70 +10,115 @@ fetchData().then(data => {
 });
 
 function visualizeData(data) {
-  const margin = {top: 20, right: 30, bottom: 40, left: 40};
-  const width = 960 - margin.left - margin.right;
-  const height = 200 - margin.top - margin.bottom;
+  const margin = { top: 40, right: 50, bottom: 65, left: 80 };
+  const width = 1260 - margin.left - margin.right;
+  const height = 500 - margin.top - margin.bottom;
 
   const container = d3.select("#charts-container");
 
-  data.forEach((d, i) => {
-    const chartDiv = container.append("div").attr("class", "chart");
+  // Aggregate all events from all objects
+  let allEvents = [];
+  data.forEach(d => {
+      d.sev.forEach(sev => {
+          allEvents.push({ date: new Date(d._id), severity: sev });
+      });
+  });
 
-    chartDiv.append("h3").text(`Объект ${i + 1}: Дата ${new Date(d._id).toLocaleString()}`);
+  // Group events by 1-hour intervals
+  const interval = d3.timeHour.every(1);
+  const timeFormat = d3.timeFormat("%Y-%m-%d %H:%M");
 
-    const svg = chartDiv.append("svg")
+  const groupedData = d3.rollups(allEvents, v => ({
+      count: v.length,
+      severityCounts: v.reduce((acc, curr) => {
+          acc[curr.severity] = (acc[curr.severity] || 0) + 1;
+          return acc;
+      }, {0: 0, 1: 0, 2: 0})
+  }), d => interval(d.date));
+
+  groupedData.sort((a, b) => d3.ascending(a[0], b[0]));
+
+  const x = d3.scaleTime()
+      .domain(d3.extent(groupedData, d => d[0]))
+      .range([0, width]);
+
+  const y = d3.scaleLinear()
+      .domain([0, d3.max(groupedData, d => d[1].count)])
+      .range([height, 0]);
+
+  const svg = container.append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Группировка событий по критичности
-    const severityCounts = d.sev.reduce((acc, sev) => {
-      acc[sev] = (acc[sev] || 0) + 1;
-      return acc;
-    }, {});
+  // Determine ticks at 25% intervals
+  const tickValues = [];
+  const tickInterval = (x.domain()[1] - x.domain()[0]) / 4;
+  for (let i = 0; i <= 4; i++) {
+      tickValues.push(new Date(x.domain()[0].getTime() + i * tickInterval));
+  }
 
-    const severities = [0, 1, 2];
-    const counts = severities.map(sev => severityCounts[sev] || 0);
-
-    const x = d3.scaleBand()
-      .domain(severities)
-      .range([0, width])
-      .padding(0.1);
-
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(counts)])
-      .range([height, 0]);
-
-    svg.append("g")
+  svg.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x).tickFormat(sev => `Severity ${sev}`));
+      .call(d3.axisBottom(x)
+          .tickValues(tickValues)
+          .tickFormat(timeFormat)
+      )
+      .selectAll("text")
+      .attr("dx", "4em")
+      .attr("dy", "1em");
 
-    svg.append("g")
+  svg.append("g")
       .attr("class", "y-axis")
       .call(d3.axisLeft(y));
 
-    const tooltip = d3.select("body").append("div")
+  // Add X-axis label
+  svg.append("text")
+      .attr("class", "x-axis-label")
+      .attr("text-anchor", "end")
+      .attr("x", width/2 + margin.left - 60)
+      .attr("y", height + margin.bottom - 20)
+      .text("Дата");
+
+  // Add Y-axis label
+  svg.append("text")
+      .attr("class", "y-axis-label")
+      .attr("text-anchor", "end")
+      .attr("x", -margin.left)
+      .attr("y", -35)
+      .attr("transform", "rotate(-90)")
+      .text("Количество событий");
+
+  const tooltip = d3.select("body").append("div")
       .attr("class", "tooltip")
       .style("opacity", 0);
 
-    svg.selectAll(".bar")
-      .data(severities)
-      .enter().append("rect")
-      .attr("class", sev => sev === 2 ? "bar bar-error" : sev === 1 ? "bar bar-warn" : "bar bar-info")
-      .attr("x", sev => x(sev))
-      .attr("y", sev => y(counts[sev]))
-      .attr("width", x.bandwidth())
-      .attr("height", sev => height - y(counts[sev]))
-      .on("mouseover", function(event, sev) {
-        tooltip.transition().duration(200).style("opacity", .9);
-        tooltip.html(`Дата: ${new Date(d._id).toLocaleString()}<br>Количество событий: ${counts[sev]}`)
-          .style("left", (event.pageX + 5) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      })
-      .on("mouseout", function() {
-        tooltip.transition().duration(500).style("opacity", 0);
+  // Stack bars
+  groupedData.forEach(d => {
+      let y0 = height;
+      ["error", "warn", "info"].forEach(severity => {
+          const sevValue = severity === "info" ? 0 : severity === "warn" ? 1 : 2;
+          const y1 = y0 - (height - y(d[1].severityCounts[sevValue] || 0));
+          const bar = svg.append("rect")
+              .attr("class", `bar bar-${severity}`)
+              .attr("x", x(d[0]))
+              .attr("y", y1)
+              .attr("width", width / (groupedData.length * 2) - 2) // Adjusted width
+              .attr("height", y0 - y1)
+              .on("mouseover", function(event) {
+                  tooltip.transition().duration(200).style("opacity", .9);
+                  tooltip.html(`Дата: ${timeFormat(d[0])}<br>Количество событий: ${d[1].severityCounts[sevValue] || 0}`)
+                      .style("left", (event.pageX + 5) + "px")
+                      .style("top", (event.pageY - 28) + "px");
+              })
+              .on("mouseout", function() {
+                  tooltip.transition().duration(500).style("opacity", 0);
+              });
+
+
+          y0 = y1;
       });
   });
 }
