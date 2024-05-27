@@ -16,7 +16,6 @@ function visualizeData(data) {
 
   const container = d3.select("#charts-container");
 
-  // Aggregate all events from all objects
   let allEvents = [];
   data.forEach(d => {
       d.sev.forEach(sev => {
@@ -24,7 +23,6 @@ function visualizeData(data) {
       });
   });
 
-  // Group events by 1-hour intervals
   const interval = d3.timeHour.every(1);
   const timeFormat = d3.timeFormat("%Y-%m-%d %H:%M");
 
@@ -52,7 +50,6 @@ function visualizeData(data) {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  // Determine ticks at 25% intervals
   const tickValues = [];
   const tickInterval = (x.domain()[1] - x.domain()[0]) / 4;
   for (let i = 0; i <= 4; i++) {
@@ -74,7 +71,6 @@ function visualizeData(data) {
       .attr("class", "y-axis")
       .call(d3.axisLeft(y));
 
-  // Add X-axis label
   svg.append("text")
       .attr("class", "x-axis-label")
       .attr("text-anchor", "end")
@@ -82,7 +78,6 @@ function visualizeData(data) {
       .attr("y", height + margin.bottom - 20)
       .text("Дата");
 
-  // Add Y-axis label
   svg.append("text")
       .attr("class", "y-axis-label")
       .attr("text-anchor", "end")
@@ -95,7 +90,6 @@ function visualizeData(data) {
       .attr("class", "tooltip")
       .style("opacity", 0);
 
-  // Stack bars
   groupedData.forEach(d => {
       let y0 = height;
       ["error", "warn", "info"].forEach(severity => {
